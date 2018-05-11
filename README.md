@@ -1,6 +1,10 @@
 # SubNet: One-Shot-Learning-for-Image-Classification
 A complete project for image classification with an interface provided for ROC test.
 
+# Environment Configuration
+1. Tensorflow-cpu 1.3 for Linux
+2. opencv-python-dev, numpy and some common 3rd party modules for python
+
 # Project Structure
 >*SubNet*  <br />
 >*|*  <br />
@@ -10,9 +14,9 @@ A complete project for image classification with an interface provided for ROC t
 >*|__dataset: dictionary of your image dataset*  <br />
 >*|__model: dictionary to place the saved-model*  <br />
 >*|__tools:*  <br />
->   *|--Augement.py*  <br />
->   *|--Draw_ROC_iteration.py*  <br />
->   *|--ReadData.py*  <br />
+>     *|--Augement.py*  <br />
+>     *|--Draw_ROC_iteration.py*  <br />
+>     *|--ReadData.py*  <br />
 
 # Scripts Description
 1. ReadData.py: Load gray images of shape [h,w,1] (types supported: jpg/jpeg/png)
