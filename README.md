@@ -6,8 +6,8 @@ SubNet  <br />
 |--SubNet.py: the definition of SubNet and important operations  <br />
 |--train_gray.py: script for training and testing  <br />
 |  <br />
-|__dataset: dictionary of your image dataset
-|__model: dictionary to place the saved-model
+|__dataset: dictionary of your image dataset  <br />
+|__model: dictionary to place the saved-model  <br />
 |__tools:  <br />
      |--Augement.py  <br />
      |--Draw_ROC_iteration.py  <br />
