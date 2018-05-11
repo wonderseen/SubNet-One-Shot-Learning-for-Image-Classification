@@ -50,15 +50,13 @@ class CL_Network(object):
         self.channel = 1
 
         # label
-        self.classification_type = 2 # 2种情况,要么相同[1,0],要么不同[0,1]
-        self.max_num = 1 # 一张图中类型可能重复出现次数
+        self.classification_type = 2
+        self.max_num = 1
 
         # net parameter
         self.w_alpha = 0.1
         self.b_alpha = 0.1
         self.start_lr = 1e-2
-
-        # 初始学习率 [1000:0.1, 4000:0.01, 1e-5]
         self.final_accuracy = 0.90
         self.trainstep = 50
         self.savestep = 100
@@ -131,18 +129,14 @@ class CL_Network(object):
             self.keep_prob = tf.placeholder(tf.float32)
 
             ##########################################################################################################
-            # image1 特征提取
-            # 第1层提取层
             w_c1_1 = tf.Variable(self.w_alpha * tf.random_normal([5, 5, 1, 8]))
             b_c1_1 = tf.Variable(self.b_alpha * tf.random_normal([8]))
             conv1_1 = tf.nn.relu(tf.nn.bias_add(tf.nn.conv2d(self.input_frame_layer1, w_c1_1, strides=[1, 1, 1, 1], padding='VALID'), b_c1_1))
-            # 49*49
 
             w_c1_2 = tf.Variable(self.w_alpha * tf.random_normal([3, 3, 8, 16]))
             b_c1_2 = tf.Variable(self.b_alpha * tf.random_normal([16]))
             conv1_2 = tf.nn.relu(tf.nn.bias_add(tf.nn.conv2d(conv1_1, w_c1_2, strides=[1, 1, 1, 1], padding='VALID'), b_c1_2))
 
-            # 第2层提取层
             w_c1_3 = tf.Variable(self.w_alpha * tf.random_normal([3, 3, 16, 20]))
             b_c1_3 = tf.Variable(self.b_alpha * tf.random_normal([20]))
             conv1_3 = tf.nn.relu(tf.nn.bias_add(tf.nn.conv2d(conv1_2, w_c1_3, strides=[1, 1, 1, 1], padding='VALID'), b_c1_3))
@@ -158,7 +152,6 @@ class CL_Network(object):
             # 20*20
 
             ##########################################################################################################
-            # image2 特征提取
             w_c2_1 = tf.Variable(self.w_alpha * tf.random_normal([5, 5, 1, 8]))
             b_c2_1 = tf.Variable(self.b_alpha * tf.random_normal([8]))
             conv2_1 = tf.nn.relu(tf.nn.bias_add(tf.nn.conv2d(self.input_frame_layer2, w_c2_1, strides=[1, 1, 1, 1], padding='VALID'),b_c2_1))
@@ -168,7 +161,6 @@ class CL_Network(object):
             b_c2_2 = tf.Variable(self.b_alpha * tf.random_normal([16]))
             conv2_2 = tf.nn.relu(tf.nn.bias_add(tf.nn.conv2d(conv2_1, w_c2_2, strides=[1, 1, 1, 1], padding='VALID'),b_c2_2))
 
-            # 第2层提取层
             w_c2_3 = tf.Variable(self.w_alpha * tf.random_normal([3, 3, 16, 20]))
             b_c2_3 = tf.Variable(self.b_alpha * tf.random_normal([20]))
             conv2_3 = tf.nn.relu(tf.nn.bias_add(tf.nn.conv2d(conv2_2, w_c2_3, strides=[1, 1, 1, 1], padding='VALID'),b_c2_3))
@@ -183,22 +175,18 @@ class CL_Network(object):
             self.feature_layer_2 = tf.nn.tanh(tf.nn.bias_add(tf.nn.conv2d(conv2_4, w_c2_5, strides=[1, 2, 2, 1], padding='VALID'), b_c2_5),name='feature_layer_2')
 
             ##########################################################################################################
-            # image1_2 分类网络
             self.sub_2d_feature = tf.subtract(self.feature_layer_1, self.feature_layer_2, 'feature_subtract')
             w_pca = tf.Variable(self.w_alpha * tf.random_normal([20 * 20 * 12, 128]))
             b_pca = tf.Variable(self.b_alpha * tf.random_normal([128]))
             dense = tf.nn.l2_normalize(tf.reshape(self.sub_2d_feature, [-1, w_pca.get_shape().as_list()[0]]),dim=1)# 对W或者向量正则化
             self.sub_2d_feature_pca = tf.nn.leaky_relu(tf.matmul(dense, w_pca) + b_pca)
 
-
             sub_feature_bn = self.bn_layer(self.sub_2d_feature_pca, is_training=True)
             # when bn is added, the performance gets better
             # if bn isn't added, the output could be all_zeros or all_ones
-
             feature_layer_3 = tf.nn.dropout(sub_feature_bn, self.keep_prob)
 
             ##########################################################################################################
-            # 第4层提取层
             w_c3_encoder = tf.Variable(self.w_alpha * tf.random_normal([128, 16]))
             b_c3_endocder = tf.Variable(self.b_alpha * tf.random_normal([16]))
             self.encoder_layer = tf.nn.leaky_relu(tf.add(tf.matmul(feature_layer_3, w_c3_encoder), b_c3_endocder),name='encoder_layer')
@@ -214,9 +202,7 @@ class CL_Network(object):
             self.loss_2d_l2_outer = 100./tf.reduce_mean(tf.square(sub_feature_bn) * self.groundtruth_label_layer_outer, name='loss_2d_l2_inner')
             #self.softmax_loss = tf.nn.softmax_cross_entropy_with_logits(logits=self.predict_out, labels=self.groundtruth_label_layer, name='softmax_loss')
             self.label_l2_loss = tf.reduce_mean(tf.square(self.predict_out-self.groundtruth_label_layer), name='label_l2_loss')
-            self.global_loss = 0.2 * self.loss_2d_l2_inner + \
-                               0.5 * self.loss_2d_l2_outer + \
-                               0.3 * self.label_l2_loss  # 逻辑回归利用交叉熵去数据均值
+            self.global_loss = 0.2 * self.loss_2d_l2_inner + 0.5 * self.loss_2d_l2_outer + 0.3 * self.label_l2_loss
             self.optimizer = tf.train.AdamOptimizer(self.learning_rate).minimize(self.global_loss)
 
             # evaulation
@@ -277,7 +263,7 @@ class CL_Network(object):
                     batch_labels_inner = batch_labels_inner.reshape(32,1)
                     batch_labels_outer = batch_labels[:,1]
                     batch_labels_outer = batch_labels_outer.reshape(32,1)
-                    step, lr= self.session.run([self.add_global, self.learning_rate])  # 更新学习率
+                    step, lr= self.session.run([self.add_global, self.learning_rate]) 
 
                     _, train_loss, inner, outer = self.session.run([self.optimizer, self.global_loss, self.loss_2d_l2_inner, self.loss_2d_l2_outer],
                                                   feed_dict={
@@ -334,13 +320,11 @@ class CL_Network(object):
                             plt.show()
                             break
 
-                        # 显示训练过程的loss变化过程:
                         if visual_loss:
                             lossy[2].append(test_acc)
                             lossy[3].append(train_acc)
                     print 'step= ', step, 'lr= ', lr, 'train_loss= ', train_loss  # ,'test_loss= ', test_loss
 
-                    # 显示训练过程的loss变化过程:
                     if visual_loss:
                         lossy[0].append(step)
                         lossy[1].append(train_loss)
@@ -380,8 +364,6 @@ class CL_Network(object):
                                                    self.input_frame_layer2: batch_x_test2,
                                                    self.groundtruth_label_layer: groundtruth_label,
                                                    self.keep_prob: 1.})
-                    # 手动算正确率
-                    # 去除哪些判断过程模棱两可的 ,比如 predict_out = [0.49,0.51]
                     test_acc_threshold = self.calculate_precious_discard_all_negative(predict_out, max_idx_truth, max_idx_p)
 
                     print 'step =', step, 'test_accuracy:', test_acc, 'threshold_accuracy:', test_acc_threshold
@@ -389,7 +371,6 @@ class CL_Network(object):
                         print 'max_idx_p: ', max_idx_p.reshape(1,-1)
                         print 'max_idx_truth: ', max_idx_truth.reshape(1,-1)
 
-                    # 显示训练过程的loss_变化过程:.'
                     accuracy[2].append(test_acc)
                     accuracy[1].append(test_acc_threshold)
                     accuracy[0].append(step)
@@ -444,8 +425,6 @@ class CL_Network(object):
                                                    self.input_frame_layer2: batch_x_test2,
                                                    self.groundtruth_label_layer: groundtruth_label,
                                                    self.keep_prob: 1.})
-                    # 手动算正确率
-                    # 去除哪些判断过程模棱两可的 ,比如 predict_out = [0.49,0.51]
                     test_acc_threshold = self.calculate_precious_discard_all_negative(predict_out, max_idx_truth, max_idx_p)
 
                     print 'step =', step, 'test_accuracy:', test_acc, 'threshold_accuracy:', test_acc_threshold
@@ -454,7 +433,6 @@ class CL_Network(object):
                         print 'max_idx_p: ', max_idx_p.reshape(1,-1)
                         print 'max_idx_truth: ', max_idx_truth.reshape(1,-1)
 
-                    # 显示训练过程的loss_变化过程:.'
                     accuracy[2].append(test_acc)
                     accuracy[1].append(test_acc_threshold)
                     accuracy[0].append(step)
@@ -464,7 +442,6 @@ class CL_Network(object):
                 plt.ylabel('/Accuracy', fontsize=15)
                 plt.title('Classification Test Accuracy', fontsize=18)
                 plt.ylim(0, 1.05)
-                #plt.grid(True, linestyle="-.", color="black", linewidth="1")
                 plt.plot(accuracy[0], accuracy[1], color='blue')
                 plt.plot(accuracy[0], accuracy[2], color='red')
 
@@ -510,9 +487,6 @@ class CL_Network(object):
                                                    self.input_frame_layer2: batch_x_test2,
                                                    self.groundtruth_label_layer: groundtruth_label,
                                                    self.keep_prob: 1.})
-
-                    # 手动算正确率
-                    # 去除哪些判断过程模棱两可的 ,比如 predict_out = [0.49,0.51]
                     test_acc_threshold, abandon_rate = calculate_precious_single_threshold(predict_out, max_idx_truth, max_idx_p,threshold=threshold)
 
                     print 'step =', step, 'test_accuracy:', test_acc, 'threshold_accuracy:', test_acc_threshold
@@ -521,11 +495,9 @@ class CL_Network(object):
                         print 'max_idx_p: ', max_idx_p.reshape(1,-1)
                         print 'max_idx_truth: ', max_idx_truth.reshape(1,-1)
 
-                    # 显示训练过程的loss_变化过程:.'
                     accuracy[2].append(test_acc)
                     accuracy[1].append(test_acc_threshold)
                     accuracy[0].append(step)
-                    # 丢弃的pair数量
                     abandon_rates.append(abandon_rate)
 
                 plt.clf()
@@ -533,7 +505,6 @@ class CL_Network(object):
                 plt.ylabel('/Accuracy', fontsize=15)
                 plt.title('Classification Test Accuracy', fontsize=18)
                 plt.ylim(0, 1.05)
-                #plt.grid(True, linestyle="-.", color="black", linewidth="1")
                 plt.plot(accuracy[0], accuracy[1], color='blue')
                 plt.plot(accuracy[0], accuracy[2], color='red')
 
@@ -579,7 +550,7 @@ class CL_Network(object):
                                                self.input_frame_layer2: batch_x_test2,
                                                self.groundtruth_label_layer: groundtruth_label,
                                                self.keep_prob: 1.})
-                # 画ROC
+                # ROC
                 batch_labels_outer = groundtruth_label[:, 1]
                 batch_labels_outer = batch_labels_outer.reshape(test_num, 1)
                 self.ROC_diagram(predict_out, batch_labels_outer, saveResult=saveResult, saveTXTName=saveTXTName)
@@ -619,7 +590,6 @@ class CL_Network(object):
                         print 'max_idx_p: ', max_idx_p.reshape(1,-1)
                         print 'max_idx_truth: ', max_idx_truth.reshape(1,-1)
 
-                    # 显示训练过程的loss_变化过程:.'
                     accuracy[1].append(test_acc)
                     accuracy[0].append(step)
 
@@ -628,7 +598,6 @@ class CL_Network(object):
                 plt.ylabel('/Accuracy', fontsize=15)
                 plt.title('Classification Test Accuracy', fontsize=18)
                 plt.ylim(0, 1.05)
-                # plt.grid(True, linestyle="-.", color="black", linewidth="1")
                 plt.plot(accuracy[0], accuracy[1], color='blue')
 
                 mean_acc = np.mean(accuracy[1])
@@ -679,7 +648,6 @@ class CL_Network(object):
                     sub_2d_feature_inner = np.matmul(np.sum(np.square(sub_2d_feature),-1),np.transpose(batch_labels_inner.reshape(-1)))/ np.sum(batch_labels_inner)
                     sub_2d_feature_outer = np.matmul(np.sum(np.square(sub_2d_feature),-1),np.transpose(batch_labels_outer.reshape(-1)))/ np.sum(batch_labels_outer)
 
-                    # 显示训练过程的loss_变化过程:.'
                     distance[2].append(sub_2d_feature_inner)
                     distance[1].append(sub_2d_feature_outer)
                     distance[0].append(step)
@@ -688,7 +656,6 @@ class CL_Network(object):
                 plt.xlabel('/Step', fontsize=15)
                 plt.ylabel('/Accuracy', fontsize=15)
                 plt.title("Distances of Pairs' Feature-Vectors", fontsize=18)
-                #plt.grid(True, linestyle="-.", color="black", linewidth="1")
                 plt.plot(distance[0], distance[1], color='blue')
                 plt.plot(distance[0], distance[2], color='red')
 
@@ -713,35 +680,25 @@ class CL_Network(object):
                 plt.show()
 
 
-    # 实现Batch Normalization
     def bn_layer(self, x, is_training,name='BatchNorm',moving_decay=0.9, eps=1e-5):
-        # 获取输入维度并判断是否匹配卷积层(4)或者全连接层(2)
         shape = x.shape
         assert len(shape) in [2,4]
 
         param_shape = shape[-1]
         with tf.variable_scope(name):
-            # 声明BN中唯一需要学习的两个参数，y=gamma*x+beta
             gamma = tf.get_variable('gamma',param_shape,initializer=tf.constant_initializer(1))
             beta  = tf.get_variable('beta', param_shape,initializer=tf.constant_initializer(0))
 
-            # 计算当前整个batch的均值与方差
             axes = list(range(len(shape)-1))
             batch_mean, batch_var = tf.nn.moments(x,axes,name='moments')
 
-            # 采用滑动平均更新均值与方差
             ema = tf.train.ExponentialMovingAverage(moving_decay)
-
             def mean_var_with_update():
                 ema_apply_op = ema.apply([batch_mean,batch_var])
                 with tf.control_dependencies([ema_apply_op]):
                     return tf.identity(batch_mean), tf.identity(batch_var)
-
-            # 训练时，更新均值与方差，测试时使用之前最后一次保存的均值与方差
             mean, var = tf.cond(tf.equal(is_training,True),mean_var_with_update,
                     lambda:(ema.average(batch_mean),ema.average(batch_var)))
-
-            # 最后执行batch normalization
             return tf.nn.batch_normalization(x,mean,var,beta,gamma,eps)
 
     # calculate_ROC
@@ -767,7 +724,6 @@ class CL_Network(object):
 
         len_predict = len(predict_out)
 
-        # 按照正例概率强到弱从大到小排列
         # https://blog.csdn.net/qq_25964837/article/details/79047948
         predict_out = predict_out[:,0] - predict_out[:,1]
         sort_arg = np.argsort(-predict_out) # 降序排列
@@ -781,16 +737,16 @@ class CL_Network(object):
             fp = 0.
             tn = 0.
             fn = 0.
-            for i in range(len_predict): # 遍历
+            for i in range(len_predict): 
                 predict = 1.
-                if i < threshold_arg: # 前切片
+                if i < threshold_arg: 
                     predict = 0.
-                if predict == 0.: # 如果预测为正例
+                if predict == 0.:
                     if predict == groundtruth[i]:
                         tp += 1.
                     else:
                         fp += 1.
-                elif predict == 1.: # 如果预测为负例
+                elif predict == 1.: 
                     if predict == groundtruth[i]:
                         tn += 1.
                     else:
@@ -800,14 +756,12 @@ class CL_Network(object):
             TP_rate.append(tp / tp_fn)
             FP_rate.append(fp / fp_tn)
 
-        # 显示
         plt.clf()
         plt.xlabel('/TPR', fontsize=15)
         plt.ylabel('/FPR', fontsize=15)
         plt.title('Receiver Operating Characteristic Curve', fontsize=18)
         plt.ylim(0, 1.01)
         plt.xlim(0, 1.0)
-        #plt.grid(True, linestyle="-.", color="black", linewidth="1")
         plt.plot(FP_rate, TP_rate, color='blue')
         plt.plot([0,1], [0,1], 'r--')
         plt.show(0.01)
