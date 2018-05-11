@@ -1,5 +1,5 @@
 # SubNet: One-Shot-Learning-for-Image-Classification
-A complete project for image classification with an interface provided for ROC test.  <br />
+This is a complete project using my SubNet which is a tiny model designed for image classification. Besides, an interface is provided for ROC test.  <br />
 In my testset, after training for 600 iteration, I achieve an mean-accuracy of 98.21% and the AUC approximately equals to 1.
 
 # Environment Configuration
@@ -23,7 +23,7 @@ In my testset, after training for 600 iteration, I achieve an mean-accuracy of 9
 1. ReadData.py: Load gray images of shape [h,w,1] (types supported: jpg/jpeg/png)
 2. Augement.py: Contain image augement operators.
 3. SubNet.py:  Main class of the SubNet model.
-4. Draw_ROC_iteration.py: a function for computing multi-iteration ROC results
+4. Draw_ROC_iteration.py: A function for computing multi-iteration ROC results
 
 # Classify Your Dataset
 1. Modify ReadData.py to fit your dataset
