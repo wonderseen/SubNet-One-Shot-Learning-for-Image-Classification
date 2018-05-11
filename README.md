@@ -1,5 +1,6 @@
 # SubNet: One-Shot-Learning-for-Image-Classification
-A complete project for image classification with an interface provided for ROC test.
+A complete project for image classification with an interface provided for ROC test.  <br />
+In my testset, after training for 600 iteration, I achieve an mean-accuracy of 98.21% and the AUC approximately equals to 1.
 
 # Environment Configuration
 1. Tensorflow-cpu 1.3 for Linux
