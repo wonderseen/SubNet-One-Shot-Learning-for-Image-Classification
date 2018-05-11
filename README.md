@@ -28,9 +28,9 @@ In my testset, after training for 600 iteration, I achieve an mean-accuracy of 9
 # Classify Your Dataset
 1. Modify ReadData.py to fit your dataset
 2. Modify the input shape to match your image dimension
-3. Warn that do not the output prediction's shape
+3. Warn that do not change the output prediction's shape
 4. Run 'train_gray.py' to start the training process.
-5. Mark RGB_net.train() as comment out, uncomment RGB_net.test_single_threshold() and rerun 'train_gray.py' to start the test process.
+5. Mark GRAY_net.train() as comment, uncomment RGB_net.test_single_threshold() and rerun 'train_gray.py' to start the test process.
 
 # Contact
 Feel free to share your doubts with me.
