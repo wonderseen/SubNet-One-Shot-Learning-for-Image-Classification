@@ -9,9 +9,9 @@ SubNet  <br />
 |__dataset: dictionary of your image dataset  <br />
 |__model: dictionary to place the saved-model  <br />
 |__tools:  <br />
-&ensp |--Augement.py  <br />
-text-indent: 2em;|--Draw_ROC_iteration.py  <br />
-     |--ReadData.py  <br />
+>    |--Augement.py  <br />
+>    |--Draw_ROC_iteration.py  <br />
+>    |--ReadData.py  <br />
 
 # Scripts Description
 1. ReadData.py: Load gray images of shape [h,w,1] (types supported: jpg/jpeg/png)
