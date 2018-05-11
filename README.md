@@ -2,16 +2,16 @@
 A complete project for image classification with an interface provided for ROC test.
 
 # Project Structure
-SubNet
-|--SubNet.py: the definition of SubNet and important operations
-|--train_gray.py: script for training and testing
-|
+SubNet  <br />
+|--SubNet.py: the definition of SubNet and important operations  <br />
+|--train_gray.py: script for training and testing  <br />
+|  <br />
 |__dataset: dictionary of your image dataset
 |__model: dictionary to place the saved-model
-|__tools: 
-     |--Augement.py
-     |--Draw_ROC_iteration.py
-     |--ReadData.py
+|__tools:  <br />
+     |--Augement.py  <br />
+     |--Draw_ROC_iteration.py  <br />
+     |--ReadData.py  <br />
 
 # Scripts Description
 1. ReadData.py: Load gray images of shape [h,w,1] (types supported: jpg/jpeg/png)
